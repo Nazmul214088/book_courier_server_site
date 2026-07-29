@@ -61,8 +61,42 @@ async function run() {
 
     //Orders related APIs
 
+    app.post("/orders", async (req, res) => {
+      const order = req.body;
+      order.orderedAt = new Date().toDateString();
+      order.status = "pending";
+      order.paymentStatus = "Unpaid";
+      const query = {
+        bookName: order.bookTitle,
+        email: order.email,
+      };
+      const isExist = await ordersCollection.findOne(query);
+      if (isExist) {
+        return res.send("This book already ordered you.");
+      }
+      const result = await ordersCollection.insertOne(order);
+      res.send(result);
+    });
+    app.get("/orders", verifyFirebaseToken, async (req, res) => {
+      const query = {};
+
+      const librarianEmail = req.query.librarianEmail;
+      const status = req.query.status;
+      if (librarianEmail) {
+        query.librarianEmail = librarianEmail;
+      }
+      if (status) {
+        query.status = status;
+      }
+      const result = await ordersCollection.find(query).toArray();
+      if (status) {
+        return res.send({ total: result.length });
+      }
+      res.send(result);
+    });
+
     //Payment methods
-     app.post("/create-checkout-session", async (req, res) => {
+    app.post("/create-checkout-session", async (req, res) => {
       const paymentInfo = req.body;
       const totalCost = parseInt(paymentInfo.totalCost) * 100;
       const session = await stripe.checkout.sessions.create({
