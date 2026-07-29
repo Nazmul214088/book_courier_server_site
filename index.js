@@ -221,6 +221,24 @@ async function run() {
 
     //Review related apis
 
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const result = await reviewsCollection.insertOne(review);
+      res.send(result);
+    });
+    app.get("/reviews", async (req, res) => {
+      const bookId = req.query.bookId;
+      let query = {};
+      if (bookId) {
+        query = {
+          bookId,
+        };
+      }
+      const result = await reviewsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+
     app.get("/", async (req, res) => {
       res.send("BookCourier is Connected to mongoDB.");
     });
