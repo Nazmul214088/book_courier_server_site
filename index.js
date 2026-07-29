@@ -162,6 +162,33 @@ async function run() {
       res.send(result);
     });
     //User related APIs
+    app.post("/users", async (req, res) => {
+      const userInfo = req.body;
+      userInfo.role = "User";
+      userInfo.createAt = new Date();
+      const query = { email: userInfo.email };
+      const isExist = await usersCollection.findOne(query);
+      if (isExist) {
+        return res.send("Already Added in the database.");
+      }
+      const result = await usersCollection.insertOne(userInfo);
+      res.send(result);
+    });
+    app.get("/users", verifyFirebaseToken, async (req, res) => {
+      const query = {};
+      const role = req.query.role;
+
+      if (role) {
+        query.role = role.charAt(0).toUpperCase() + role.slice(1);
+      }
+
+      const result = await usersCollection.find(query).toArray();
+
+      if (role) {
+        return res.send({ totalLibraries: result.length });
+      }
+      res.send(result);
+    });
 
     //Review related apis
 
