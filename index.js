@@ -94,6 +94,43 @@ async function run() {
       }
       res.send(result);
     });
+    app.get("/orders/:email", verifyFirebaseToken, async (req, res) => {
+      const { email } = req.params;
+      const decodedEmail = req.token_email;
+      console.log(decodedEmail);
+
+      const status = req.query.status;
+      const query = {
+        email,
+      };
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "Forbidden Access!s" });
+      }
+      if (status) {
+        query.status = status;
+      }
+      const result = await ordersCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.patch("/orders/:id", verifyFirebaseToken, async (req, res) => {
+      const { id } = req.params;
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const updateDoc = {
+        status: "cancelled",
+      };
+      const result = await ordersCollection.updateOne(query, {
+        $set: updateDoc,
+      });
+      res.send(result);
+    });
+    app.delete("/orders/:id", async (req, res) => {
+      const bookId = req.params.id;
+      const query = { bookId };
+      const result = await ordersCollection.deleteOne(query);
+      res.send(result);
+    });
 
     //Payment methods
     app.post("/create-checkout-session", async (req, res) => {
