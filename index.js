@@ -64,7 +64,66 @@ async function run() {
     //Payment methods
 
     // Books related APIs
-    
+    app.post("/books", async (req, res) => {
+      const book = req.body;
+      book.createAt = new Date();
+      const query = {
+        bookTitle: book.bookTitle,
+        email: book.email,
+      };
+      const isExist = await booksCollection.findOne(query);
+      if (isExist) {
+        return res.send("This book already added in the database.");
+      }
+      const result = await booksCollection.insertOne(book);
+      res.send(result);
+    });
+    app.get("/books", async (req, res) => {
+      const email = req.query.userEmail;
+
+      const page = Number(req.query.page);
+      const limit = Number(req.query.limit);
+      const skip = (page - 1) * limit;
+      const query = {};
+      let sortOperation = {};
+      const sort = req.query.price;
+
+      if (email) {
+        query.librarianEmail = email;
+      }
+      if (sort === "price-asc") {
+        sortOperation.price = 1;
+      }
+      if (sort === "price-desc") {
+        sortOperation.price = -1;
+      }
+      if (sort === "name-asc") {
+        sortOperation.bookTitle = 1;
+      }
+      if (sort === "name-desc") {
+        sortOperation.bookTitle = -1;
+      }
+      const bookCategory = req.query.bookCategory;
+
+      if (bookCategory) {
+        if (bookCategory.split(" ").length === 1) {
+          const bookCapitalize =
+            bookCategory.charAt(0).toUpperCase() +
+            bookCategory.slice(1).toLowerCase();
+          query.bookCategory = bookCapitalize;
+        } else {
+          query.bookCategory = bookCategory;
+        }
+      }
+
+      const result = await booksCollection
+        .find(query)
+        .skip(skip)
+        .limit(limit)
+        .sort(sortOperation)
+        .toArray();
+      res.send(result);
+    });
     //User related APIs
 
     //Review related apis
