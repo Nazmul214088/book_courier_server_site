@@ -62,6 +62,51 @@ async function run() {
     //Orders related APIs
 
     //Payment methods
+     app.post("/create-checkout-session", async (req, res) => {
+      const paymentInfo = req.body;
+      const totalCost = parseInt(paymentInfo.totalCost) * 100;
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            price_data: {
+              currency: "bdt",
+              unit_amount: totalCost,
+              product_data: {
+                name: paymentInfo.bookName,
+              },
+            },
+
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+
+        metadata: {
+          bookName: paymentInfo.bookName,
+          bookId: paymentInfo.bookId,
+        },
+        success_url: `${process.env.CLIENT_URL}/dashboard/payment_success?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${process.env.CLIENT_URL}/dashboard/payment_cancel`,
+      });
+      res.send({ url: session.url });
+    });
+
+    app.patch("/payment-success", async (req, res) => {
+      const sessionId = req.query.session_id;
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      const updateDoc = {
+        transaction: session.payment_intent,
+        paymentStatus: session.payment_status,
+        paymentDate: new Date().toDateString(),
+      };
+      const query = {
+        _id: new ObjectId(session.metadata.bookId),
+      };
+      const result = await ordersCollection.updateOne(query, {
+        $set: updateDoc,
+      });
+      res.send(result);
+    });
 
     // Books related APIs
     app.post("/books", async (req, res) => {
