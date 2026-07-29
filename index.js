@@ -189,6 +189,35 @@ async function run() {
       }
       res.send(result);
     });
+    app.get("/users/:email", verifyFirebaseToken, async (req, res) => {
+      const { email } = req.params;
+      const decodedEmail = req.token_email;
+      if (email !== decodedEmail) {
+        return res.status(403).send({ message: "Forbidden Access!" });
+      }
+      const result = await usersCollection.findOne({ email });
+      res.send(result);
+    });
+    app.get("/users/:email/role", verifyFirebaseToken, async (req, res) => {
+      const { email } = req.params;
+      const query = {
+        email,
+      };
+      const result = await usersCollection.findOne(query);
+      res.send(result.role);
+    });
+    app.patch("/users/:email", async (req, res) => {
+      const updateInfo = req.body;
+      const { email } = req.params;
+      const query = {
+        email,
+      };
+      const result = await usersCollection.updateOne(query, {
+        $set: updateInfo,
+      });
+      res.send(result);
+    });
+
 
     //Review related apis
 
