@@ -124,6 +124,24 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    app.get("/books/latest", async (req, res) => {
+      const query = {};
+      const result = await booksCollection
+        .find(query)
+        .sort({ createdAt: -1 })
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
+    app.get("/books/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const query = {
+        _id: new ObjectId(id),
+      };
+      const result = await booksCollection.findOne(query);
+      res.send(result);
+    });
     //User related APIs
 
     //Review related apis
