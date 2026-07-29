@@ -218,9 +218,7 @@ async function run() {
       res.send(result);
     });
 
-
     //Review related apis
-
     app.post("/reviews", async (req, res) => {
       const review = req.body;
       const result = await reviewsCollection.insertOne(review);
@@ -238,6 +236,38 @@ async function run() {
       res.send(result);
     });
 
+    //Wishlist related APIs
+    app.post("/wishlist", async (req, res) => {
+      const wishlist = req.body;
+      const result = await wishlistsCollection.insertOne(wishlist);
+      res.send(result);
+    });
+    app.get("/wishlist", verifyFirebaseToken, async (req, res) => {
+      const userEmail = req.query.userEmail;
+      const decodedEmail = req.token_email;
+      const bookId = req.query.bookId;
+      const query = {};
+      if (userEmail) {
+        query.userEmail = userEmail;
+        if (userEmail !== decodedEmail) {
+          return res.status(403).send({ message: "Forbidden Access!" });
+        }
+      }
+      if (bookId && userEmail) {
+        query.userEmail = userEmail;
+        query.bookId = bookId;
+        const result = await wishlistsCollection.findOne(query);
+        return res.send({ isWishListed: !!result });
+      }
+      const result = await wishlistsCollection.find(query).toArray();
+      res.send(result);
+    });
+    app.delete("/wishlist/:bookId", async (req, res) => {
+      const bookId = req.params.bookId;
+      const query = { bookId };
+      const result = await wishlistsCollection.deleteOne(query);
+      res.send(result);
+    });
 
     app.get("/", async (req, res) => {
       res.send("BookCourier is Connected to mongoDB.");
