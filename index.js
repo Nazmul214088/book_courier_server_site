@@ -305,6 +305,16 @@ async function run() {
       }
       res.send(result);
     });
+    app.get("/users/role", async (req, res) => {
+      const query = {};
+      const role = req.query.role;
+
+      if (role) {
+        query.role = role.charAt(0).toUpperCase() + role.slice(1);
+      }
+      const result = await usersCollection.find(query).toArray();
+      return res.send({ totalLibraries: result.length });
+    });
     app.get("/users/:email", verifyFirebaseToken, async (req, res) => {
       const { email } = req.params;
       const decodedEmail = req.token_email;
