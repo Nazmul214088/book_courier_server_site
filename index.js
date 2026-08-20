@@ -9,11 +9,19 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 dns.setServers(["1.1.1.1", "8.8.8.8"]);
 const port = process.env.PORT || 5000;
+const admin = require("firebase-admin");
+
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
-const serviceAccount = require("./book_courier-firebase-admin_sdk.json");
-initializeApp({
-  credential: cert(serviceAccount),
+// index.js
+const decoded = Buffer.from(
+  process.env.FIREBASE_SERVICE_KEY,
+  "base64",
+).toString("utf8");
+const serviceAccount = JSON.parse(decoded);
+
+admin.initializeApp({
+  credential: admin.cert(serviceAccount),
 });
 
 //middleware
@@ -396,12 +404,8 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/", async (req, res) => {
-      res.send("BookCourier is Connected to mongoDB.");
-    });
-
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
@@ -411,7 +415,14 @@ async function run() {
   }
 }
 run().catch(console.dir);
-
-app.listen(port, () => {
-  console.log(`BookCourier app listening on port ${port}`);
+app.get("/", async (req, res) => {
+  res.send("BookCourier is Connected to mongoDB.");
 });
+
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`BookCourier app listening on port ${port}`);
+  });
+}
+
+module.exports = app;
