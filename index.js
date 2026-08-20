@@ -203,6 +203,7 @@ async function run() {
       const query = {};
       let sortOperation = {};
       const sort = req.query.price;
+      console.log(sort);
 
       if (email) {
         query.librarianEmail = email;
