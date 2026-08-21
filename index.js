@@ -104,7 +104,6 @@ async function run() {
   app.get("/orders/:email", verifyFirebaseToken, async (req, res) => {
     const { email } = req.params;
     const decodedEmail = req.token_email;
-    console.log(decodedEmail);
 
     const status = req.query.status;
     const query = {
@@ -210,7 +209,6 @@ async function run() {
     const query = {};
     let sortOperation = {};
     const sort = req.query.price;
-    console.log(sort);
 
     if (email) {
       query.librarianEmail = email;
@@ -404,8 +402,8 @@ async function run() {
   });
 
   // Send a ping to confirm a successful connection
-  // await client.db("admin").command({ ping: 1 });
-  console.log("Pinged your deployment. You successfully connected to MongoDB!");
+  await client.db("admin").command({ ping: 1 });
+  console.log("You successfully connected to MongoDB!");
 }
 
 run().catch(console.dir);
@@ -413,3 +411,5 @@ app.get("/", (req, res) => {
   res.send("BookCourier is Connected to mongoDB.");
 });
 app.listen(port, () => console.log(`Server running on port ${port}`));
+
+// module.exports = app;

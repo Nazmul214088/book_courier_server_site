@@ -1,4 +1,5 @@
 node_modules
-.env
-book_courier-firebase-admin_sdk.json
 .vercel
+.env
+encode.js
+book_courier-firebase-admin_sdk.json
